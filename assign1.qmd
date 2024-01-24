@@ -1,0 +1,102 @@
+---
+title: "assign1"
+author: "Yingjun"
+format: pdf
+editor: visual
+---
+
+```{r}
+#| message: false
+#| echo: false
+rm(list = ls())
+library(tidyverse)
+library(fpp3)
+```
+
+##Q1
+
+##Q2
+
+```{r}
+#| message: false
+#| warning: false
+aus_livestock <- aus_livestock
+aus_livestock |> filter(State == "Victoria") |>
+  filter(Animal == "Pigs") |> autoplot(.vars = Count)
+```
+
+##Q3
+
+Q3-a: skip = 10 means skip the top 10 row of the dataset, n_max = 152 means only read 152 lines of the remaining data in this csv. The reason why we do this is to only extract the required data to avoid the appearance of noisy data in different formats.
+
+Q3-b: t() means transpose, this action is in order to make it easier to convert data to tibble format where the first line denote time index and following lines denote value variables.
+
+##Q4
+
+a
+
+```{r}
+beer <- aus_production
+beer |> autoplot(.vars = Beer) + 
+  labs(y = "Beer", 
+       x = "Year Q1")
+```
+
+b-From the time plot, we can see a clear upward trend from 1960 Q1 to 1980 Q1. Then stable from 1980 to 2000. And there is also seasonality in every year.
+
+c
+
+```{r}
+beer |> gg_season(y = Beer)
+
+```
+
+d-The period of seasonality is a year.
+
+e-We can easily see that beer production in the second and third quarters was generally lower than in the first and fourth quarters.
+
+##Q5
+
+a
+
+```{r}
+pelt <- pelt |> pivot_longer('Hare':'Lynx',
+                     names_to = "Types",
+                     values_to = "value")
+autoplot(pelt, .vars = value)
+
+```
+
+Q5-b:R reports error in gg_season(). The cause of error is that the data must contain at least one observation per seasonal period for gg_season(). The default period of the function is year, which means Lynx should have at least one year's quarter data. However pelt_Lynx seems take period of 10 years and only contain annual data.
+
+c
+
+```{r}
+pelt |> filter(Types == "Lynx") |> 
+  gg_lag(y = value, lags = 1:20, geom = "point") +
+  scale_x_continuous(labels = function(x) paste0(x / 1000, "k")) +
+  scale_y_continuous(labels = function(x) paste0(x / 1000, "k")) +
+  ggtitle("Lynx")
+
+pelt |> filter(Types == "Hare") |> 
+  gg_lag(y = value, lags = 1:20, geom = "point") +
+  scale_x_continuous(labels = function(x) paste0(x / 1000, "k")) +
+  scale_y_continuous(labels = function(x) paste0(x / 1000, "k")) +
+  ggtitle("Hare")
+```
+
+Take plot of Lynx as an example. As we can see from the lag plot: lag1, lag2, lag9, lag10, lag10, lag19 and lag20 show positive correlation. Lag4,5 and lag14,15 show negative correlation. This is also consistent with the volatility we see on the time plot, where periods of ups are followed by downs. That is if the lag_k period is in the uphill stage, it is a positive correlation, and if the lag_k period is in the downhill stage, it is a negative correlation.
+
+d-From the lag_plot, we guess the seasonality period may be 10 years for Lynx and Hare production.
+
+e
+
+```{r}
+#| message: false
+source("C:/Users/pc/Documents/plot_util.R")
+pelt |> filter(Types == "Lynx") |> 
+  gg_custom_season(y = value, period = 10, start = 1)
+
+```
+
+The results generally show seasonality, because the trend of this cluster of data in 10 years is nearly the same, with the highest peak occurring around the second year and the lowest occurring around the eighth year.
